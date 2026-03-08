@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마비팟 숙제 사이트</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="layout">
+
+        <aside id="sidebar">
+            <div class="sidebar-header">
+                <h5 class="mb-0">마비팟</h5>
+                <button class="btn btn-sm btn-outline-secondary sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            </div>
+
+            <ul class="sidebar-menu">
+
+                <li class="menu-title" onclick="changeTab('개요')">개요</li>
+
+                <li class="menu-title" onclick="toggleOwnerMenu()">
+                    유저 별 숙제 현황 <span id="owner-arrow">▼</span>
+                </li>
+
+                <ul id="owner-menu" class="owner-list sub-menu"></ul>
+
+                <li class="menu-title">유저 관리</li>
+                <ul class="sub-menu">
+                    <li onclick="addPerson()">유저 추가</li>
+                    <li onclick="openDeleteUserModal()">유저 삭제</li>
+                </ul>
+
+            </ul>
+        </aside>
+
+        <main id="main-content">
+
+            <div class="container-fluid mt-4">
+
+                <button class="btn btn-outline-dark d-md-none mb-3" onclick="toggleSidebar()">
+                    ☰
+                </button>
+
+                <header class="mb-4">
+                    <h1 style="font-weight:bold;">마비팟 숙제 사이트</h1>
+                    <p class="text-muted" id="tab-description"></p>
+                </header>
+
+                <div id="overview-filters"></div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3" id="character-cards"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">캐릭터 정보 수정</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit-id">
+                    <input type="hidden" id="edit-owner">
+                    <div class="mb-3">
+                        <label class="form-label">캐릭터 닉네임</label>
+                        <input type="text" class="form-control" id="edit-name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">클래스 (직업)</label>
+                        <input type="text" class="form-control" id="edit-job">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">전투력</label>
+                        <input type="number" class="form-control" id="edit-power">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">사진 URL</label>
+                        <input type="text" class="form-control" id="edit-img-url" placeholder="https://...png">
+                        <div class="form-text">이미지 주소를 입력하세요</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">사진 세로 위치 조정 (0~100)</label>
+                        <input type="range" class="form-range" id="edit-img-pos" min="0" max="100" value="50">
+                    </div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-danger" onclick="deleteCharacter()">캐릭터 삭제</button>
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">수정 취소</button>
+                        <button type="button" class="btn btn-primary" onclick="saveCharacter()">저장 확정</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">유저 삭제</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+            <div class="modal-body">
+
+                <label class="form-label">삭제할 유저</label>
+                <select id="delete-user-select" class="form-select"></select>
+
+                <label class="form-label mt-3">확인을 위해 이름 입력</label>
+            <input type="text" id="delete-user-confirm" class="form-control">
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-danger" onclick="confirmDeleteUser()">삭제</button>
+            </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
