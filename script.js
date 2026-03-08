@@ -218,9 +218,6 @@ function syncToDB() {
 
     fetch(CONFIG.GAS_URL,{
         method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
         body:JSON.stringify({
             token:CONFIG.TOKEN,
             action:"sync",
@@ -547,5 +544,6 @@ function toggleOwnerMenu(){
     }else{
         arrow.innerHTML = "▼";
     }
+
 
 }
