@@ -86,20 +86,28 @@ function renderCards() {
                         ${char.abyss.map((isDone, idx) => `
                             <div class="task-row">
                                 <div class="task-check ${isDone ? 'checked' : ''}"
-                                    onclick="toggleTask(${char.id}, 'abyss', ${idx})" ${disabledAttr}></div>
+                                    style="${isDone 
+                                        ? `background:${char.color};border-color:${char.color}`
+                                        : `border-color:${char.color}`}"
+                                    onclick="toggleTask(${char.id}, 'abyss', ${idx})" ${disabledAttr}>
+                                </div>
                                 <span>${abyssNames[idx]}</span>
                             </div>
-                        `).join('')}
+                            `).join('')}
                     </div>
                     <h6 class="fw-bold mb-2">레이드</h6>
                     <div class="task-grid">
                         ${char.raid.map((isDone, idx) => `
                             <div class="task-row">
                                 <div class="task-check ${isDone ? 'checked' : ''}"
-                                    onclick="toggleTask(${char.id}, 'raid', ${idx})" ${disabledAttr}></div>
+                                    style="${isDone 
+                                        ? `background:${char.color};border-color:${char.color}`
+                                        : `border-color:${char.color}`}"
+                                    onclick="toggleTask(${char.id}, 'raid', ${idx})" ${disabledAttr}>
+                                </div>
                                 <span>${raidNames[idx]}</span>
                             </div>
-                        `).join('')}
+                            `).join('')}
                     </div>
                 </div>
             </div>
@@ -147,7 +155,8 @@ function addPerson(){
         img: "",
         imgPos: 50,
         abyss: [false,false,false,false],
-        raid: [false,false,false,false]
+        raid: [false,false,false,false],
+        color:"#0d6efd",
     });
 
     syncToDB();
@@ -159,7 +168,8 @@ function addNewCharacter(owner) {
     dbData.push({
         id: newId, owner: owner, name: '새 캐릭터', job: '직업', power: 0, 
         img: '', imgPos: 50,
-        abyss: [false,false,false,false], raid: [false,false,false,false]
+        abyss: [false,false,false,false], raid: [false,false,false,false],
+        color:"#0d6efd",
     });
     render();
     openEdit(newId);
@@ -173,6 +183,8 @@ function openEdit(charId) {
     document.getElementById('edit-name').value = char.name;
     document.getElementById('edit-job').value = char.job;
     document.getElementById('edit-power').value = char.power;
+    document.getElementById('edit-color').value = char.color || "#0d6efd";
+    document.getElementById('edit-color-hex').value = char.color || "#0d6efd";
     
     // 파일 입력창 초기화 및 기존 이미지 Base64로 보존
     document.getElementById('edit-img-url').value = char.img || "";
@@ -192,6 +204,7 @@ function saveCharacter() {
     char.job = document.getElementById('edit-job').value;
     char.power = parseInt(document.getElementById('edit-power').value);
     char.imgPos = document.getElementById('edit-img-pos').value;
+    char.color = document.getElementById('edit-color-hex').value;
 
     char.img = document.getElementById('edit-img-url').value.trim();
     finalizeSave();
@@ -545,5 +558,19 @@ function toggleOwnerMenu(){
         arrow.innerHTML = "▼";
     }
 
+}
 
+const colorInput = document.getElementById("edit-color");
+const hexInput = document.getElementById("edit-color-hex");
+
+if(colorInput){
+    colorInput.addEventListener("input", e=>{
+        hexInput.value = e.target.value;
+    });
+}
+
+if(hexInput){
+    hexInput.addEventListener("input", e=>{
+        colorInput.value = e.target.value;
+    });
 }
