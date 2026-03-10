@@ -574,3 +574,4 @@ if(hexInput){
         colorInput.value = e.target.value;
     });
 }
+
