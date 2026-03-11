@@ -96,7 +96,7 @@ body {
 .task-check{
     width:18px;
     height:18px;
-    border:2px solid #0d6efd;
+    border:2px solid #212529;
     border-radius:6px;
     display:flex;
     align-items:center;
@@ -105,7 +105,7 @@ body {
 }
 
 .task-check.checked{
-    background:#0d6efd;
+    background:#212529;
 }
 
 .task-check.checked::after{
