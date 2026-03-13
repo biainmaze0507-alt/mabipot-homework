@@ -143,6 +143,10 @@ body {
     display:none;
 }
 
+#sidebar.collapsed .sidebar-header img{
+    display:none;
+}
+
 #sidebar.collapsed .sidebar-menu{
     display:none;
 }
