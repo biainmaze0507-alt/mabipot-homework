@@ -353,15 +353,11 @@ function renderOverview(){
 }
 
 function renderOverviewSection(type){
-
     const names = type === 'abyss' ? abyssNames : raidNames;
-
     let html = `<div class="row">`;
 
     names.forEach((name,index)=>{
-
         if(overviewDetail.length > 0 && !overviewDetail.includes(index)) return;
-
         const list = getUndone(type,index);
 
         html += `
@@ -385,17 +381,25 @@ function renderOverviewSection(type){
                     <th>전투력</th>
                 </tr>
             </thead>
-            <tbody>
+<tbody>
+            ${list.map(c=>{
+                // --- 개요 탭 표에도 이름 줄바꿈 로직 적용 ---
+                let displayName = c.name;
+                if (displayName.length > 11) {
+                    displayName = displayName.substring(0, 11) + '...';
+                }
+                if (displayName.length > 6) {
+                    displayName = displayName.substring(0, 6) + '<br>' + displayName.substring(6);
+                }
+                // ---------------------------------------
 
-            ${list.map(c=>`
+                return `
                 <tr>
                     <td>${c.owner}</td>
-                    <td>${c.name}</td>
-                    <td>${c.job}</td>
+                    <td>${displayName}</td> <td>${c.job}</td>
                     <td>⚔️${c.power.toLocaleString()}</td>
-                </tr>
-            `).join('')}
-
+                </tr>`;
+            }).join('')}
             </tbody>
             </table>
             </div>

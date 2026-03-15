@@ -39,8 +39,11 @@ body {
     justify-content: center;
     word-break: break-all; /* 영문/숫자 혼용 시에도 강제 줄바꿈 */
 }
-.char-job{font-size:0.85rem}
-.char-name,.char-job{white-space:nowrap}
+.char-job {font-size:0.85rem}
+.char-job {
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
 
 /* 비활성화된 개요 탭에서의 버튼 스타일 조정 */
 .task-btn:disabled, .btn-fixed-sm:disabled {
