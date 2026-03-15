@@ -23,11 +23,22 @@ body {
     position:relative;
     min-height:48px;
 }
-.char-info{
-    text-align:center;
+.char-info {
+    text-align: center;
+    width: 100%;
+    padding: 0 40px; /* 수정 버튼과 겹치지 않게 좌우 여백 확보 */
 }
 
-.char-name{font-weight:bold}
+.char-name {
+    font-weight: bold;
+    /* white-space: nowrap;  <-- 이 줄을 삭제하거나 주석 처리하세요 */
+    line-height: 1.2;
+    min-height: 2.4em; /* 2줄 분량의 높이를 미리 확보하여 카드 높이 유지 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    word-break: break-all; /* 영문/숫자 혼용 시에도 강제 줄바꿈 */
+}
 .char-job{font-size:0.85rem}
 .char-name,.char-job{white-space:nowrap}
 

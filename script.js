@@ -47,13 +47,25 @@ function renderOwnerMenu(){
 
 function renderCards() {
     const container = document.getElementById('character-cards');
-    const isReadOnly = (currentTab === '개요'); // 읽기 전용 여부 판단
-    const disabledAttr = isReadOnly ? 'disabled' : ''; // 버튼 비활성화 속성
+    const isReadOnly = (currentTab === '개요'); 
+    const disabledAttr = isReadOnly ? 'disabled' : ''; 
 
     const filteredData = isReadOnly ? dbData : dbData.filter(d => d.owner === currentTab);
     
     let html = '';
     filteredData.forEach(char => {
+        
+        // --- 이름 처리 로직 추가 ---
+        let displayName = char.name;
+        if (displayName.length > 11) {
+            displayName = displayName.substring(0, 11) + '...';
+        }
+        if (displayName.length > 6) {
+            // 6글자 이후에 <br> 삽입 (단, 7글자 이상일 때만)
+            displayName = displayName.substring(0, 6) + '<br>' + displayName.substring(6);
+        }
+        // ------------------------
+
         html += `
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card h-100">
@@ -66,17 +78,15 @@ function renderCards() {
                 </div>
                 <div class="card-body">
                     <div class="card-header-content">
-
                         <button class="btn btn-outline-secondary btn-sm btn-fixed-sm"
                                 onclick="openEdit(${char.id})" ${disabledAttr}>
                             정보 수정
                         </button>
 
                         <div class="char-info">
-                            <div class="char-name">${char.name}</div>
+                            <div class="char-name">${displayName}</div>
                             <div class="char-job">${char.job} | ⚔️${char.power.toLocaleString()}</div>
                         </div>
-
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between align-items-center mb-2">
