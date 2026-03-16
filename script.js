@@ -294,25 +294,29 @@ function deletePerson(){
 
 function render() {
     renderOwnerMenu();
+    const descEl = document.getElementById('tab-description');
+    const filtersContainer = document.getElementById("overview-filters");
 
-    if(currentTab === '개요'){
+    // 1. 개요 탭일 때
+    if (currentTab === '개요') {
         renderOverview();
         renderOverviewFilters();
-    }else{
-        renderCards();
-        document.getElementById("overview-filters").innerHTML="";
-    }
-
-    const descEl = document.getElementById('tab-description');
-
-    if (currentTab === '개요') {
         descEl.innerText = "개요 탭에서는 미진행 숙제 캐릭터 목록을 확인할 수 있습니다.";
         descEl.style.display = 'block';
-    } else {
+    } 
+    // 2. 파티 모집 탭일 때 (이 부분이 명확히 분리되어야 합니다)
+    else if (currentTab === '파티 모집') {
+        renderPartyBoard(); // 캐릭터 카드가 아닌 파티 게시판을 그림
+        descEl.innerText = "어비스 및 레이드 파티를 모집하고 참여할 수 있습니다.";
+        descEl.style.display = 'block';
+    } 
+    // 3. 그 외 (개별 유저 탭일 때)
+    else {
+        renderCards(); // 여기서만 '새 캐릭터 추가'가 나타남
+        filtersContainer.innerHTML = "";
         descEl.style.display = 'none';
     }
 }
-
 function getUndone(type,index){
     return dbData
         .filter(c => !c[type][index])
@@ -589,4 +593,384 @@ if(hexInput){
     });
 }
 
+// 상단 변수 선언부에 추가
+let partyData = []; 
+let partyType = "all"; 
+let createPartyModalInst;
 
+// DOMContentLoaded 수정 (loadPartyFromDB 추가)
+document.addEventListener('DOMContentLoaded', () => {
+    createPartyModalInst = new bootstrap.Modal(document.getElementById('createPartyModal'));
+    
+    document.getElementById('party-type').addEventListener('change', (e) => {
+        updateDungeonSelect(e.target.value);
+    });
+    
+    loadFromDB();
+    loadPartyFromDB(); // 파티 데이터도 불러오기
+});
+
+// 기존 함수들 아래에 파티 관련 로직 추가
+// --- 파티 보드 렌더링 함수 수정 (삭제 버튼 추가) ---
+function renderPartyBoard() {
+    const filtersContainer = document.getElementById("overview-filters");
+    const container = document.getElementById('character-cards');
+    
+    // 1. 필터 렌더링 (전체/어비스/레이드)
+    const sliderPos = partyType === 'all' ? '0%' : (partyType === 'abyss' ? '100%' : '200%');
+    filtersContainer.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="segmented" style="width: 240px;">
+                <div class="segmented-bg" style="width: calc(33.3% - 4px); transform: translateX(${sliderPos});"></div>
+                <button class="${partyType==='all'?'active':''}" onclick="setPartyType('all')" style="flex:1">전체</button>
+                <button class="${partyType==='abyss'?'active':''}" onclick="setPartyType('abyss')" style="flex:1">어비스</button>
+                <button class="${partyType==='raid'?'active':''}" onclick="setPartyType('raid')" style="flex:1">레이드</button>
+            </div>
+            <button class="btn btn-dark" onclick="openCreatePartyModal()">+ 파티 생성</button>
+        </div>
+    `;
+
+    // 2. 데이터 필터링
+    const filteredParties = partyType === 'all' ? partyData : partyData.filter(p => p.type === partyType);
+    
+    let html = '<div class="row g-3">';
+    if (filteredParties.length === 0) {
+        html += `<div class="col-12 py-5 text-center text-muted">모집 중인 파티가 없습니다.</div>`;
+    } else {
+        filteredParties.forEach(party => {
+            const isFull = party.members.length >= party.maxMembers;
+            html += `
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card h-100 party-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="badge ${isFull?'bg-secondary':'bg-primary'}">${isFull?'모집 마감':'모집 중'}</span>
+                            <button class="btn btn-link text-danger p-0" onclick="deleteParty(${party.id})"><small>삭제</small></button>
+                        </div>
+                        <h5 class="fw-bold mb-1">${party.title}</h5>
+                        <p class="text-muted small mb-3">${party.memo || '설명 없음'}</p> <div class="mb-2">
+                            <span class="badge border text-dark">${party.dungeon}</span>
+                            <span class="text-muted small ms-2">🕒 ${party.time}</span>
+                        </div>
+                        
+                        <div class="small fw-bold mb-2">참여자 (클릭 시 제외)</div>
+                        <div class="party-members mb-3">
+                            ${party.members.map(m => `
+                                <span class="member-tag clickable" onclick="removeMember(${party.id}, '${m.name}')">
+                                    ${m.name} <small class="text-muted">(${m.job}/${m.power})</small>
+                                </span>
+                            `).join('')}
+                            ${Array(Math.max(0, party.maxMembers - party.members.length)).fill('<span class="member-tag empty">빈 자리</span>').join('')}
+                        </div>
+                        
+                        <button class="btn btn-outline-dark w-100 btn-sm" onclick="joinParty(${party.id})" ${isFull ? 'disabled' : ''}>
+                            참여하기
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// --- 파티 삭제 기능 ---
+function deleteParty(partyId) {
+    if (!confirm("정말로 이 모집글을 삭제하시겠습니까?")) return;
+    
+    partyData = partyData.filter(p => p.id !== partyId);
+    render();
+    syncPartyToDB();
+}
+
+function setPartyType(type) {
+    partyType = type;
+    render();
+}
+
+// 멤버 삭제 기능
+function removeMember(partyId, memberName) {
+    if (!confirm(`[${memberName}] 멤버를 파티에서 제외할까요?`)) return;
+    
+    const party = partyData.find(p => p.id === partyId);
+    if (party) {
+        party.members = party.members.filter(m => m.name !== memberName);
+        render();
+        syncPartyToDB();
+    }
+}
+
+// 1. 파티 생성 모달 열 때 유저 목록 초기화
+function openCreatePartyModal() {
+    const owners = [...new Set(dbData.map(d => d.owner))].sort();
+    const ownerSelect = document.getElementById('create-owner-select');
+    ownerSelect.innerHTML = owners.map(o => `<option value="${o}">${o}</option>`).join('');
+    
+    updateCreateCharSelect(); // 캐릭터 목록 업데이트
+    createPartyModalInst.show();
+    updateDungeonSelect(
+    document.getElementById("party-type").value
+);
+}
+
+function updateCreateCharSelect() {
+    const owner = document.getElementById('create-owner-select').value;
+    const charSelect = document.getElementById('create-char-select');
+    const userChars = dbData.filter(c => c.owner === owner);
+    charSelect.innerHTML = userChars.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+}
+
+// 어비스는 다중 선택(체크박스), 레이드는 단일 선택(라디오)으로 분기
+function updateDungeonSelect(type) {
+    const container = document.getElementById('party-dungeon-container');
+    const helpText = document.getElementById('dungeon-help');
+    const names = type === 'abyss' ? abyssNames : raidNames;
+    
+    if (type === 'abyss') {
+        helpText.innerText = "(다중 선택 가능)";
+        container.innerHTML = names.map((n, i) => `
+            <div class="form-check">
+                <input class="form-check-input dungeon-check" type="checkbox" value="${n}" id="dg-${i}">
+                <label class="form-check-label" for="dg-${i}">${n}</label>
+            </div>
+        `).join('');
+        document.getElementById('party-max').value = 4; // 어비스는 무조건 4명
+    } else {
+        helpText.innerText = "(단일 선택)";
+        container.innerHTML = names.map((n, i) => `
+            <div class="form-check">
+                <input class="form-check-input dungeon-radio" type="radio" name="raidDg" value="${n}" id="dg-${i}" onchange="updateRaidMax()">
+                <label class="form-check-label" for="dg-${i}">${n}</label>
+            </div>
+        `).join('');
+        document.getElementById('party-max').value = 4; // 기본 4명 (라디오 클릭 시 변경됨)
+    }
+}
+
+// 타바르타스, 글라스기브넨 선택 시 정원 8명으로 자동 변경
+function updateRaidMax() {
+    const selected = document.querySelector('.dungeon-radio:checked');
+    const maxInput = document.getElementById('party-max');
+    if (selected) {
+        if (selected.value === '타바르타스' || selected.value === '글라스기브넨') {
+            maxInput.value = 8;
+        } else {
+            maxInput.value = 4;
+        }
+    }
+}
+
+function createParty() {
+    const ownerName = document.getElementById('create-owner-select').value;
+    const charName = document.getElementById('create-char-select').value;
+
+    const charData = dbData.find(
+        c => c.owner === ownerName && c.name === charName
+    );
+
+    if(!charData){
+        alert("캐릭터 정보를 찾을 수 없습니다.");
+        return;
+    }
+    const type = document.getElementById('party-type').value;
+
+    let dungeon = "";
+
+    if(type === "abyss"){
+        dungeon = Array.from(document.querySelectorAll('.dungeon-check:checked'))
+            .map(c => c.value)
+            .join(", ");
+    }else{
+        const selected = document.querySelector('.dungeon-radio:checked');
+        dungeon = selected ? selected.value : "";
+    }
+    if(!dungeon){
+        alert("세부 분류를 선택해주세요.");
+        return;
+    }
+
+    // 새 파티 객체 생성
+    const newParty = {
+        id: Date.now(),
+        type: type,
+        dungeon: dungeon,
+        title: document.getElementById('party-title').value,
+        time: document.getElementById('party-time').value,
+        maxMembers: parseInt(document.getElementById('party-max').value),
+        memo: document.getElementById('party-memo').value,
+        members: [{
+            name: charData.name,
+            job: charData.job,
+            power: charData.power,
+            owner: charData.owner
+        }] // 방장 자동 포함
+    };
+
+    partyData.push(newParty);
+    render();
+    syncPartyToDB();
+    notifyDiscord(newParty); // 디코 알림
+    createPartyModalInst.hide();
+}
+
+// --- GAS 연동 로직 (파티 데이터) ---
+function syncPartyToDB() {
+    fetch(CONFIG.GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            token: CONFIG.TOKEN,
+            action: "syncParty", // DB 액션명 분리
+            data: partyData
+        })
+    })
+    .then(() => console.log("파티 DB 저장 완료"))
+    .catch(err => console.error("파티 저장 실패:", err));
+}
+
+function loadPartyFromDB() {
+    // 파티 데이터를 불러오기 위해 action 파라미터 추가
+    fetch(CONFIG.GAS_URL + "?token=" + CONFIG.TOKEN + "&action=loadParty")
+    .then(res => res.json())
+    .then(data => {
+        partyData = Array.isArray(data) ? data : [];
+        if(currentTab === '파티 모집') render();
+    })
+    .catch(err => {
+        console.error("파티 불러오기 실패:", err);
+        partyData = [];
+    });
+}
+
+// 상단 변수 선언부
+let joinPartyModalInst;
+let joiningPartyId = null; // 현재 어떤 파티에 참여하려고 하는지 저장
+
+// DOMContentLoaded 내에 추가
+document.addEventListener('DOMContentLoaded', () => {
+    // ... 기존 코드 ...
+    joinPartyModalInst = new bootstrap.Modal(document.getElementById('joinPartyModal'));
+});
+
+// --- 파티 참여 로직 개편 ---
+
+// 1. 참여 버튼 클릭 시 모달 열기
+function joinParty(partyId) {
+    joiningPartyId = partyId;
+    const party = partyData.find(p => p.id === partyId);
+    if (!party) return;
+
+    // 유저(Owner) 목록 추출 및 드롭다운 생성
+    const owners = [...new Set(dbData.map(d => d.owner))].sort();
+    const ownerSelect = document.getElementById('join-owner-select');
+    
+    if (owners.length === 0) {
+        alert("등록된 유저가 없습니다. 캐릭터를 먼저 등록해주세요.");
+        return;
+    }
+
+    ownerSelect.innerHTML = owners.map(o => `<option value="${o}">${o}</option>`).join('');
+    
+    // 첫 번째 유저의 캐릭터 목록으로 초기화
+    updateJoinCharSelect();
+    
+    joinPartyModalInst.show();
+}
+
+// 2. 유저 선택이 바뀔 때 해당 유저의 캐릭터 목록 업데이트
+function updateJoinCharSelect() {
+    const selectedOwner = document.getElementById('join-owner-select').value;
+    const charSelect = document.getElementById('join-char-select');
+    
+    // 해당 유저의 캐릭터만 필터링
+    const userChars = dbData.filter(c => c.owner === selectedOwner);
+    
+    charSelect.innerHTML = userChars.map(c => `
+        <option value="${c.name}">${c.name} (${c.job})</option>
+    `).join('');
+}
+
+// 3. 최종 참여 확정
+function confirmJoin() {
+    const party = partyData.find(p => p.id === joiningPartyId);
+    const selectedChar = document.getElementById('join-char-select').value;
+
+    if (!party || !selectedChar) return;
+
+    // 이미 참여했는지 체크 (캐릭터 이름 중복 방지)
+    if (party.members.some(m => m.name === selectedChar)) {
+        alert("이미 이 파티에 참여 중인 캐릭터입니다.");
+        return;
+    }
+
+    // 정원 체크 (혹시 모를 상황 대비)
+    if (party.members.length >= party.maxMembers) {
+        alert("파티 정원이 가득 찼습니다.");
+        joinPartyModalInst.hide();
+        return;
+    }
+
+    // 데이터 추가 및 저장
+    const charData = dbData.find(c => c.name === selectedChar);
+
+    party.members.push({
+        name: charData.name,
+        job: charData.job,
+        power: charData.power,
+        owner: charData.owner
+    });
+    
+    joinPartyModalInst.hide();
+    render(); // 화면 갱신
+    syncPartyToDB(); // GAS 동기화
+    
+    alert(`${selectedChar} 캐릭터가 파티에 참여되었습니다.`);
+}
+
+function sendDiscordNotification(party, actionTitle) {
+    if (!CONFIG.DISCORD_WEBHOOK) return;
+
+    const payload = {
+        embeds: [{
+            title: `📢 ${actionTitle}`,
+            description: `**${party.title}**\n${party.memo || ""}`,
+            color: 5814783,
+            fields: [
+                { name: "던전", value: party.dungeon, inline: true },
+                { name: "시간", value: party.time, inline: true },
+                { name: "인원", value: `${party.members.length}/${party.maxMembers}`, inline: true }
+            ],
+            footer: { text: "마비팟 숙제 사이트" }
+    }],
+        components: [ // 이 부분이 버튼을 만듭니다
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: "참여하러 가기 (웹사이트)",
+                        style: 5,
+                        url: "https://biainmaze0507-alt.github.io/mabipot-homework/" 
+                    }
+                ]
+            }
+        ]
+    };
+
+    fetch(CONFIG.DISCORD_WEBHOOK, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+}
+
+function notifyDiscord(party) {
+    fetch(CONFIG.GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            token: CONFIG.TOKEN,
+            action: "notifyDiscord",
+            data: party
+        })
+    });
+}

@@ -317,3 +317,35 @@ body {
 .sidebar-backdrop.show{
     display:block;
 }
+
+/* 파티 모집 카드 관련 스타일 */
+.party-card {
+    border-top: 4px solid #212529;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.party-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.05);
+}
+
+.party-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.member-tag {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    background-color: #f1f3f5;
+    border-radius: 12px;
+    color: #495057;
+    font-weight: 500;
+}
+
+.member-tag.empty {
+    background-color: transparent;
+    border: 1px dashed #ced4da;
+    color: #adb5bd;
+}

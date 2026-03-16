@@ -24,6 +24,8 @@
 
                 <li class="menu-title" onclick="changeTab('개요')">개요</li>
 
+                <li class="menu-title" onclick="changeTab('파티 모집')">파티 모집</li>
+
                 <li class="menu-title" onclick="toggleOwnerMenu()">
                     유저 별 숙제 현황 <span id="owner-arrow">▼</span>
                 </li>
@@ -157,6 +159,90 @@
     </div>
 
     <div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+
+    <div class="modal fade" id="createPartyModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">파티 모집</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">모집 종류</label>
+                        <select class="form-select" id="party-type">
+                            <option value="abyss">어비스</option>
+                            <option value="raid">레이드</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">세부 선택 <span id="dungeon-help" class="text-muted" style="font-size: 0.8rem;">(다중 선택 가능)</span></label>
+                        <div id="party-dungeon-container" class="d-flex flex-wrap gap-2 mt-1"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">파티 제목</label>
+                        <input type="text" class="form-control" id="party-title" placeholder="">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">출발 희망 시간</label>
+                        <input type="text" class="form-control" id="party-time" placeholder="예: 오늘 밤 10시, 4명 모이면 바로 출발">
+                    </div>
+
+                    <div class="mb-3 border p-2 rounded bg-light">
+                        <label class="form-label fw-bold">방장 캐릭터 설정</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="create-owner-select" onchange="updateCreateCharSelect()"></select>
+                            </div>
+                            <div class="col-6">
+                                <select class="form-select form-select-sm" id="create-char-select"></select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">모집 인원</label>
+                        <input type="number" class="form-control" id="party-max" value="4" min="2" max="8">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">메모 (선택)</label>
+                        <textarea class="form-control" id="party-memo" rows="2" placeholder=""></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="createParty()">모집 시작</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="joinPartyModal" tabindex="-1">
+        <div class="modal-dialog modal-sm"> <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">파티 참여</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">유저 선택</label>
+                        <select class="form-select" id="join-owner-select" onchange="updateJoinCharSelect()"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">캐릭터 선택</label>
+                        <select class="form-select" id="join-char-select"></select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" onclick="confirmJoin()">참여 확정</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
