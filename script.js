@@ -58,7 +58,7 @@ function renderOwnerMenu(){
 
 function renderCards() {
     const container = document.getElementById('character-cards');
-    const isReadOnly = (currentTab === '개요'); 
+    const isReadOnly = (currentTab === '개요' || currentTab === '파티 모집');
     const disabledAttr = isReadOnly ? 'disabled' : ''; 
 
     const filteredData = isReadOnly ? dbData : dbData.filter(d => d.owner === currentTab);
