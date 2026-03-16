@@ -15,7 +15,18 @@ const abyssNames = ['대공동', '신전', '신단', '폐기장'];
 const raidNames = ['타바르타스', '에이렐', '글라스기브넨', '서큐버스'];
 
 document.addEventListener('DOMContentLoaded', () => {
+
+    editModalInst = new bootstrap.Modal(document.getElementById('editModal'));
+    createPartyModalInst = new bootstrap.Modal(document.getElementById('createPartyModal'));
+    joinPartyModalInst = new bootstrap.Modal(document.getElementById('joinPartyModal'));
+
+    document.getElementById('party-type').addEventListener('change', (e) => {
+        updateDungeonSelect(e.target.value);
+    });
+
     loadFromDB();
+    loadPartyFromDB();
+
 });
 
 function renderOwnerMenu(){
@@ -598,18 +609,6 @@ let partyData = [];
 let partyType = "all"; 
 let createPartyModalInst;
 
-// DOMContentLoaded 수정 (loadPartyFromDB 추가)
-document.addEventListener('DOMContentLoaded', () => {
-    createPartyModalInst = new bootstrap.Modal(document.getElementById('createPartyModal'));
-    
-    document.getElementById('party-type').addEventListener('change', (e) => {
-        updateDungeonSelect(e.target.value);
-    });
-    
-    loadFromDB();
-    loadPartyFromDB(); // 파티 데이터도 불러오기
-});
-
 // 기존 함수들 아래에 파티 관련 로직 추가
 // --- 파티 보드 렌더링 함수 수정 (삭제 버튼 추가) ---
 function renderPartyBoard() {
@@ -846,11 +845,6 @@ function loadPartyFromDB() {
 let joinPartyModalInst;
 let joiningPartyId = null; // 현재 어떤 파티에 참여하려고 하는지 저장
 
-// DOMContentLoaded 내에 추가
-document.addEventListener('DOMContentLoaded', () => {
-    // ... 기존 코드 ...
-    joinPartyModalInst = new bootstrap.Modal(document.getElementById('joinPartyModal'));
-});
 
 // --- 파티 참여 로직 개편 ---
 
