@@ -656,7 +656,7 @@ function renderPartyBoard() {
                         <div class="party-members mb-3">
                             ${party.members.map(m => `
                                 <span class="member-tag clickable" onclick="removeMember(${party.id}, '${m.name}')">
-                                    ${m.name} <small class="text-muted">(${m.job}⚔️${m.power})</small>
+                                    ${m.name} <small class="text-muted">(${m.job}⚔️${m.power.toLocaleString()})</small>
                                 </span>
                             `).join('')}
                             ${Array(Math.max(0, party.maxMembers - party.members.length)).fill('<span class="member-tag empty">빈 자리</span>').join('')}
