@@ -963,7 +963,6 @@ function notifyDiscord(party) {
         method: "POST",
         body: JSON.stringify({
             token: CONFIG.TOKEN,
-            action: "notifyDiscord",
             data: party
         })
     });
