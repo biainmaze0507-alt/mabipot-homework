@@ -348,10 +348,22 @@ function render() {
                 <img src="https://i.ibb.co/gb5yQyFX/1.png" style="height:42px;">
                 <h1 style="font-weight:bold; margin:0;">마비팟 숙제 사이트</h1>
             </div>
-            ${headerRightBtn}
+
+            <!-- 항상 버튼 존재 -->
+            <button class="pill-btn" onclick="manualSync()" id="sync-btn">
+                동기화
+            </button>
         </div>
         <p class="text-muted mb-0" id="tab-description"></p>
     `;
+
+    const syncBtn = document.getElementById("sync-btn");
+
+    if(currentTab === "개요"){
+        syncBtn.style.display = "none";
+    } else {
+        syncBtn.style.display = "inline-block";
+    }
 }
 function getUndone(type,index){
     return dbData
@@ -994,7 +1006,8 @@ function notifyDiscord(party) {
 }
 
 function manualSync(){
-    setSaveStatus?.("동기화 중...", "orange");
+    // 1. 로딩 모달 띄우기
+    showSyncModal("loading"); 
 
     if(currentTab === "파티 모집"){
         loadPartyFromDB();
@@ -1002,8 +1015,9 @@ function manualSync(){
         loadFromDB();
     }
 
+    // 2. 0.5초 뒤에 성공 상태로 바꾸고 모달 닫기
     setTimeout(()=>{
-        setSaveStatus?.("동기화 완료", "green");
+        showSyncModal("success"); 
     }, 500);
 }
 
@@ -1023,7 +1037,7 @@ function showSyncModal(state){
 
     if(state === "fail"){
         icon.innerText = "❌";
-        text.innerText = "동기화 실패...";
+        text.innerText = "동기화 실패";
     }
 
     syncModalInst.show();
@@ -1033,28 +1047,5 @@ function showSyncModal(state){
         setTimeout(()=>{
             syncModalInst.hide();
         }, 1000);
-    }
-}
-
-async function manualSync(){
-    showSyncModal("loading");
-
-    try {
-        if(currentTab === "파티 모집"){
-            const res = await fetch(CONFIG.GAS_URL + "?token=" + CONFIG.TOKEN + "&action=loadParty");
-            const data = await res.json();
-            partyData = Array.isArray(data) ? data : [];
-        } else {
-            const res = await fetch(CONFIG.GAS_URL + "?token=" + CONFIG.TOKEN);
-            const data = await res.json();
-            dbData = data;
-        }
-
-        render();
-        showSyncModal("success");
-
-    } catch(err){
-        console.error(err);
-        showSyncModal("fail");
     }
 }
