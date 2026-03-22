@@ -349,3 +349,22 @@ body {
     border: 1px dashed #ced4da;
     color: #adb5bd;
 }
+
+.pill-btn {
+    border: 1.5px solid #dee2e6;
+    border-radius: 999px;
+    padding: 4px 14px;
+    font-size: 0.85rem;
+    background: white;
+    transition: all 0.2s ease;
+}
+
+.pill-btn:hover {
+    background: #212529;
+    color: white;
+    border-color: #212529;
+}
+
+.pill-btn:active {
+    transform: scale(0.96);
+}

@@ -7,6 +7,7 @@ let dbData = [];
 
 let currentTab = '개요';
 let editModalInst = new bootstrap.Modal(document.getElementById('editModal'));
+let syncModalInst = new bootstrap.Modal(document.getElementById('syncModal'));
 
 let overviewType = "abyss";
 let overviewDetail = [0];
@@ -327,6 +328,30 @@ function render() {
         filtersContainer.innerHTML = "";
         descEl.style.display = 'none';
     }
+    const header = document.getElementById("main-header");
+
+    let headerRightBtn = "";
+
+    // 유저별 숙제 or 파티 모집에서만 버튼 표시
+    if(currentTab !== "개요"){
+        headerRightBtn = `
+            <button class="pill-btn"
+                onclick="manualSync()">
+                🔄 동기화
+            </button>
+        `;
+    }
+
+    header.innerHTML = `
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <img src="https://i.ibb.co/gb5yQyFX/1.png" style="height:42px;">
+                <h1 style="font-weight:bold; margin:0;">마비팟 숙제 사이트</h1>
+            </div>
+            ${headerRightBtn}
+        </div>
+        <p class="text-muted mb-0" id="tab-description"></p>
+    `;
 }
 function getUndone(type,index){
     return dbData
@@ -966,4 +991,70 @@ function notifyDiscord(party) {
             data: party
         })
     });
+}
+
+function manualSync(){
+    setSaveStatus?.("동기화 중...", "orange");
+
+    if(currentTab === "파티 모집"){
+        loadPartyFromDB();
+    } else {
+        loadFromDB();
+    }
+
+    setTimeout(()=>{
+        setSaveStatus?.("동기화 완료", "green");
+    }, 500);
+}
+
+function showSyncModal(state){
+    const icon = document.getElementById("syncModalIcon");
+    const text = document.getElementById("syncModalText");
+
+    if(state === "loading"){
+        icon.innerText = "🔄";
+        text.innerText = "동기화 중...";
+    }
+
+    if(state === "success"){
+        icon.innerText = "✅";
+        text.innerText = "동기화 완료!";
+    }
+
+    if(state === "fail"){
+        icon.innerText = "❌";
+        text.innerText = "동기화 실패...";
+    }
+
+    syncModalInst.show();
+
+    // 성공/실패는 1초 후 자동 닫기
+    if(state !== "loading"){
+        setTimeout(()=>{
+            syncModalInst.hide();
+        }, 1000);
+    }
+}
+
+async function manualSync(){
+    showSyncModal("loading");
+
+    try {
+        if(currentTab === "파티 모집"){
+            const res = await fetch(CONFIG.GAS_URL + "?token=" + CONFIG.TOKEN + "&action=loadParty");
+            const data = await res.json();
+            partyData = Array.isArray(data) ? data : [];
+        } else {
+            const res = await fetch(CONFIG.GAS_URL + "?token=" + CONFIG.TOKEN);
+            const data = await res.json();
+            dbData = data;
+        }
+
+        render();
+        showSyncModal("success");
+
+    } catch(err){
+        console.error(err);
+        showSyncModal("fail");
+    }
 }
